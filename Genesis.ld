@@ -23,9 +23,14 @@ SECTIONS{
     } > FLASH 
     /* > FLASH 表示  运行地址（VMA）在flash,CPU 必须去 Flash 的地址空间里取指令执行 */
 
-    _sidata = ALIGN(4);
-    .data : AT(_sidata) /* 加载地址 LMA addres is sidata(in flash) */
+    _sidata = ALIGN(4); 
+    /* AT指示这个section的加载地址 LMA addres is sidata(in flash) */
+    /* 至于section的长度，链接器会自己计算，这样烧录时就知道烧录到flash的起始地址和长度 */
+    /* 搬到ram中，需要我们启动代码来实现  */
+    .data : AT(_sidata) 
     {
+        /* >RAM 告诉编译器下面地址都是ram地址，起始地址和长度也都知道 */
+        /* 这样运行时知道从flash哪里搬，搬多少到目标ram地址范围 */
         . = ALIGN(4);
         _sdata = .; /* data section VMA address */
         *(.data*)
@@ -33,6 +38,10 @@ SECTIONS{
         _edata = .;
     } > RAM  /* >RAM 运行地址在RAM */
 
+    /* 下面这个3个section, 在flash中不会有任何踪迹 */
+    /* 但是bss要在ram中有所体现且要清0，而链接脚本给我们提供了地址和长度 */
+    /* heap和stack不用改变数据，但是要设置ram地址范围 */
+    /* 这就需要我们通过链接脚本提供的地址和长度，来在启动时初始化它们 */
     .bss :
     {
         . = ALIGN(4);
