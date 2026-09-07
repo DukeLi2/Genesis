@@ -1,0 +1,4 @@
+{
+    "cortex-debug.armToolchainPath": "D:/Program Files/Arm/GNU_Toolchain_mingw-w64-x86_64-arm-none-eabi/bin",
+    "cortex-debug.gdbPath": "D:/Program Files/Arm/GNU_Toolchain_mingw-w64-x86_64-arm-none-eabi/bin/arm-none-eabi-gdb.exe"
+}

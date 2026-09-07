@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Genesis STM32F767",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/bin/Genesis.elf",
+            "preLaunchTask": "Build Genesis",
+            "servertype": "jlink",
+            "serverpath": "D:/Program Files/SEGGER/JLink_V798/JLinkGDBServerCL.exe",
+            "device": "STM32F767IG",
+            "interface": "swd",
+            "runToEntryPoint": "Reset_Handler"
+        }
+    ]
+}
