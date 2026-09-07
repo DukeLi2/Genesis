@@ -2,6 +2,7 @@
 PROJECT_NAME = Genesis
 BUILD_DIR = build
 LD_SCRIPT = Genesis.ld
+.DEFAULT_GOAL := all
 
 #源文件目录
 SRC_DIR = \
@@ -14,24 +15,26 @@ INC_DIR = \
 
 # ================= 工具链配置 =================
 TOOLPREFIX := arm-none-eabi-
-CC = $(TOOLPREFIX)gcc
-AS = $(TOOLPREFIX)as
-LD = $(TOOLPREFIX)ld
-OBJCOPY = $(TOOLPREFIX)objcopy
-OBJDUMP = $(TOOLPREFIX)objdump
+CC := $(TOOLPREFIX)gcc
+AS := $(TOOLPREFIX)as
+LD := $(TOOLPREFIX)ld
+OBJCOPY := $(TOOLPREFIX)objcopy
+OBJDUMP := $(TOOLPREFIX)objdump
+NM := $(TOOLPREFIX)nm
 
 # ================= 编译与链接选项 =================
 CFLAGS += -Wall -Wextra -O2 -g
-CFLAGS += -mcpu=cortex-m7 -mthumb
-LDFLAGS += -g
-LDFLAGS += -specs=nosys.specs
+CFLAGS += -mcpu=cortex-m7 -mthumb -specs=nosys.specs
+
+# 生成map文件
+LDFLAGS += -Wl,-Map=$(BUILD_DIR)/bin/$(PROJECT_NAME).map
+LDFLAGS += -T $(LD_SCRIPT)
+
 
 # 自动生成头文件依赖关系
 CFLAGS += -MMD -MP
 # 头文件搜索编译选项
 CPPFLAGS += $(addprefix -I,$(INC_DIR))
-
-LDFLAGS += -T $(LD_SCRIPT)
 
 # ================= 文件收集 =================
 # 递归搜索目录中的文件
@@ -55,22 +58,36 @@ DEPS := $(OBJS:.o=.d)
 # ================= 构建规则 =================
 $(OBJ_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: %.s
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 #================= 构建目标 =================
 TARGET := $(BUILD_DIR)/bin/$(PROJECT_NAME).elf
 
 $(TARGET): $(OBJS)
 	@mkdir -p $(dir $@)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+#	$(OBJDUMP) -d -S $(TARGET) > $(BUILD_DIR)/bin/$(PROJECT_NAME).asm
+	$(NM) -n $(TARGET) > $(BUILD_DIR)/bin/$(PROJECT_NAME).sym
 
-all: $(TARGET)
+BIN_FILE := $(BUILD_DIR)/bin/$(PROJECT_NAME).bin
+
+$(BIN_FILE): $(TARGET)
+	@mkdir -p $(dir $@)
+	$(OBJCOPY) -O binary $< $@
+
+HEX_FILE := $(BUILD_DIR)/bin/$(PROJECT_NAME).hex
+
+$(HEX_FILE): $(TARGET)
+	@mkdir -p $(dir $@)
+	$(OBJCOPY) -O ihex $< $@
+
+all: $(TARGET) $(BIN_FILE) $(HEX_FILE)
 
 # 删除所有生成物
 .PHONY: clean
 clean:
-	@rm -f $(OBJS) $(DEPS) $(TARGET)
+	@rm -rf $(BUILD_DIR)

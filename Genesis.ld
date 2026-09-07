@@ -9,15 +9,13 @@ ENTRY(Reset_Handler)
 _heap_size = 0;
 _stack_size = 0;
 
-/* end of stack， 栈顶位置 */
-_estack = ORIGIN(RAM)+ LENGTH(RAM);
-
 SECTIONS{
     .text :
     {
         KEEP(*(.isr_vector))
         *(.text*)
         *(.rodata*)
+        
         *(.eh_frame*)
         /* Static constructors and destructors */
         KEEP(*(.init))
@@ -40,15 +38,16 @@ SECTIONS{
         . = ALIGN(4);
 		__bss_start__ = .;
 		*(.bss*)
-		*(COMMON)
+        /* 未初始化的全局变量Common Symbol，不属于任何一个具体的section,将它们放入COMMON section */ 
+		*(COMMON) 
 		. = ALIGN(4);
 		__bss_end__ = .;
     } >RAM
 
-    end = .;
     ._heap :
     {
         . = ALIGN(4);
+        PROVIDE(end = .); /* newlib的_sbrk通过end地址获得heap起点*/
         . = . + _heap_size;
         . = ALIGN(4);
     } >RAM
@@ -60,9 +59,12 @@ SECTIONS{
         . = ALIGN(4);
     } >RAM
 
+    /* end of stack， 栈顶位置 */
+    _estack = ORIGIN(RAM)+ LENGTH(RAM);
+
     /DISCARD/ :
     {
-        *(.ARM.exidx) /* this is for c++ exceptions */
+        *(.ARM.exidx) /* this is for c++ exceptions，don't need */
     }
 
     /* Keep DWARF sections for source-level debugging. */
