@@ -56,7 +56,7 @@ SECTIONS{
     ._heap :
     {
         . = ALIGN(4);
-        PROVIDE(end = .); /* newlib的_sbrk通过end地址获得heap起点*/
+        PROVIDE(end = .); /* newlib中的 libgloss的 _sbrk 引用了end获得heap起点*/
         . = . + _heap_size;
         . = ALIGN(4);
     } >RAM
